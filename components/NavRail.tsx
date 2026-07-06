@@ -7,11 +7,11 @@ const icons: Record<View, React.ReactNode> = {
   board: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="2.5" width="3.4" height="11" rx="1"/><rect x="6.3" y="2.5" width="3.4" height="7.5" rx="1"/><rect x="11.1" y="2.5" width="3.4" height="9.5" rx="1"/></svg>,
   table: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="2.5" width="13" height="11" rx="1.2"/><line x1="1.5" y1="6.3" x2="14.5" y2="6.3"/><line x1="6" y1="6.3" x2="6" y2="13.5"/></svg>,
   learn: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"><path d="M4 2.5 h8 v11 l-4 -2.4 -4 2.4 z"/></svg>,
-  meetings: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="3" width="13" height="11" rx="1.2"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="5" y1="1.6" x2="5" y2="4"/><line x1="11" y1="1.6" x2="11" y2="4"/></svg>,
+  administrative: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="3" width="13" height="11" rx="1.2"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="5" y1="1.6" x2="5" y2="4"/><line x1="11" y1="1.6" x2="11" y2="4"/></svg>,
 };
 const NAV: { id: View; label: string }[] = [
   { id: "board", label: "Board" }, { id: "table", label: "Table" },
-  { id: "learn", label: "Learn" }, { id: "meetings", label: "Meetings" },
+  { id: "learn", label: "Learn" }, { id: "administrative", label: "Administrative" },
 ];
 
 export function NavRail({ view, setView, counts }: { view: View; setView: (v: View) => void; counts: Record<ColumnId, number> }) {

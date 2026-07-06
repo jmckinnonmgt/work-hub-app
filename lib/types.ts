@@ -1,5 +1,5 @@
-export type ColumnId = "backlog" | "next" | "inprogress" | "blocked" | "done";
-export type Category = "Task" | "Overnight review" | "Learn" | "Meeting" | "Branch-context";
+export type ColumnId = "next" | "inprogress" | "blocked" | "done";
+export type Category = "Build" | "Learn" | "Administrative";
 export type Source = string;
 export type Build = string;
 

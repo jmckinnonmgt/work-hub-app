@@ -1,13 +1,9 @@
 "use client";
-import type { Build, Category } from "@/lib/types";
+import type { Build } from "@/lib/types";
 import { tokens } from "@/lib/tokens";
 
-const CATEGORIES: Category[] = ["Task", "Overnight review", "Meeting", "Branch-context"];
-
-export function FilterBar({ fBuild, setFBuild, fCat, setFCat, adminOnly, setAdminOnly, builds, children }: {
+export function FilterBar({ fBuild, setFBuild, builds, children }: {
   fBuild: "All" | Build; setFBuild: (b: "All" | Build) => void;
-  fCat: "All" | Category; setFCat: (c: "All" | Category) => void;
-  adminOnly: boolean; setAdminOnly: (v: boolean) => void;
   builds: string[];
   children?: React.ReactNode;
 }) {
@@ -19,14 +15,6 @@ export function FilterBar({ fBuild, setFBuild, fCat, setFCat, adminOnly, setAdmi
         <option value="All">All builds</option>
         {builds.map((b) => <option key={b} value={b}>{b}</option>)}
       </select>
-      <select aria-label="Category" value={fCat} onChange={(e) => setFCat(e.target.value as "All" | Category)} style={selStyle}>
-        <option value="All">All categories</option>
-        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-      </select>
-      <button onClick={() => setAdminOnly(!adminOnly)} style={{ ...selStyle,
-        background: adminOnly ? tokens.accentSoft : tokens.panel,
-        color: adminOnly ? tokens.accent : tokens.ink2,
-        border: `1px solid ${adminOnly ? tokens.accent : tokens.line}` }}>Administrative</button>
       <div style={{ flex: 1 }} />
       {children}
     </div>

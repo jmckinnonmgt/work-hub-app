@@ -56,7 +56,7 @@ export async function createTask(token: string, meta: FieldMeta, title: string, 
   const itemId = added.addProjectV2ItemById.item.id;
   const defaults: [FieldMeta["status"] | FieldMeta["category"] | FieldMeta["build"] | FieldMeta["source"], string][] = [
     [meta.status, statusNameForColumn(column)],
-    [meta.category, "Task"],
+    [meta.category, "Build"],
     [meta.source, "Self"],
     [meta.build, "General"],
   ];

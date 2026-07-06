@@ -7,12 +7,12 @@ describe("tokens", () => {
     expect(tokens.accent).toBe("#7aa7c7");
     expect(tokens.status.inprogress).toBe("#c49a58");
   });
-  it("defines the five columns in order", () => {
+  it("defines the four columns in order", () => {
     expect(COLUMNS.map((c) => c.id)).toEqual([
-      "backlog", "next", "inprogress", "blocked", "done",
+      "next", "inprogress", "blocked", "done",
     ]);
     expect(COLUMNS.map((c) => c.label)).toEqual([
-      "Backlog", "Next", "In progress", "Blocked", "Done",
+      "Next", "In progress", "Blocked", "Done",
     ]);
   });
 });

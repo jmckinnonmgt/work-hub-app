@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import type { Build, Category, ColumnId, ProjectData, Task } from "@/lib/types";
-import { applyFilters, boardTasks, columnCounts, learnList, type Filters } from "@/lib/views/derive";
+import type { Build, ColumnId, ProjectData, Task } from "@/lib/types";
+import { applyFilters, boardTasks, buildTasks, columnCounts, learnList, adminList, type Filters } from "@/lib/views/derive";
 import { moveCard, addCard } from "@/lib/github/browser";
 import { tokens } from "@/lib/tokens";
 import { Board } from "./Board";
@@ -10,20 +10,18 @@ import { FilterBar } from "./FilterBar";
 import { QuickAdd } from "./QuickAdd";
 import { TableView } from "./TableView";
 import { LearnList } from "./LearnList";
-import { MeetingsView } from "./MeetingsView";
+import { AdministrativeView } from "./AdministrativeView";
 
-export type View = "board" | "table" | "learn" | "meetings";
-const VIEW_TITLES: Record<View, string> = { board: "Board", table: "Table", learn: "Learn", meetings: "Meetings" };
+export type View = "board" | "table" | "learn" | "administrative";
+const VIEW_TITLES: Record<View, string> = { board: "Board", table: "Table", learn: "Learn", administrative: "Administrative" };
 
 export function AppClient({ initial, demo = false }: { initial: ProjectData; demo?: boolean }) {
   const [tasks, setTasks] = useState<Task[]>(initial.tasks);
   const [view, setView] = useState<View>("board");
   const [fBuild, setFBuild] = useState<"All" | Build>("All");
-  const [fCat, setFCat] = useState<"All" | Category>("All");
-  const [adminOnly, setAdminOnly] = useState(false);
   const meta = initial.meta;
   const builds = meta.build.options.map((o) => o.name);
-  const filters: Filters = { build: fBuild, category: fCat, adminOnly };
+  const filters: Filters = { build: fBuild };
 
   async function onMove(itemId: string, column: ColumnId) {
     const prev = tasks;
@@ -35,19 +33,19 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
   async function onAdd(title: string) {
     const prev = tasks;
     const temp: Task = { itemId: `temp-${Date.now()}`, issueNumber: 0, title, url: "",
-      build: "General", category: "Task", source: "Self", column: "backlog", repo: "", branch: "" };
+      build: "General", category: "Build", source: "Self", column: "next", repo: "", branch: "" };
     setTasks((ts) => [...ts, temp]);
     if (demo) return;
-    try { await addCard(meta, title, "backlog"); } catch { setTasks(prev); }
+    try { await addCard(meta, title, "next"); } catch { setTasks(prev); }
   }
 
-  const visible = applyFilters(tasks, filters);
-  const board = boardTasks(visible);
+  const filtered = applyFilters(tasks, filters);
+  const board = boardTasks(filtered);
   const counts = columnCounts(board);
-  const buildOnly = tasks.filter((t) => fBuild === "All" || t.build === fBuild);
-  const learn = learnList(buildOnly);
-  const meetings = buildOnly.filter((t) => t.category === "Meeting");
-  const viewCount = view === "learn" ? learn.length : view === "meetings" ? meetings.length : board.length;
+  const viewCount = view === "learn" ? learnList(filtered).length
+    : view === "administrative" ? adminList(filtered).length
+    : view === "table" ? buildTasks(filtered).length
+    : board.length;
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
@@ -57,19 +55,14 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
           <span style={{ fontSize: 16, fontWeight: 650, color: tokens.ink }}>{VIEW_TITLES[view]}</span>
           <span style={{ fontSize: 12, color: tokens.ink3 }}>{viewCount} of {tasks.length} tasks</span>
         </header>
-        <FilterBar
-          fBuild={fBuild} setFBuild={setFBuild}
-          fCat={fCat} setFCat={setFCat}
-          adminOnly={adminOnly} setAdminOnly={setAdminOnly}
-          builds={builds}
-        >
+        <FilterBar fBuild={fBuild} setFBuild={setFBuild} builds={builds}>
           <QuickAdd onAdd={onAdd} />
         </FilterBar>
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           {view === "board" ? <Board tasks={board} onMove={onMove} />
-            : view === "table" ? <TableView tasks={board} buildOrder={builds} />
-            : view === "learn" ? <LearnList tasks={learn} />
-            : <MeetingsView meetings={meetings} />}
+            : view === "table" ? <TableView tasks={buildTasks(filtered)} buildOrder={builds} />
+            : view === "learn" ? <LearnList tasks={learnList(filtered)} />
+            : <AdministrativeView tasks={adminList(filtered)} />}
         </div>
       </div>
     </div>

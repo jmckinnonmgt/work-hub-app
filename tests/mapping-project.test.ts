@@ -22,6 +22,6 @@ describe("mapProject", () => {
     expect(t.source).toBe("Manager");
     expect(t.repo).toBe("gamma");
     expect(t.branch).toBe("fix/model-string");
-    expect(t.category).toBe(null);
+    expect(t.category).toBe("Build");
   });
 });

@@ -3,9 +3,9 @@ import { render, screen } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { Task } from "@/lib/types";
 
-const mk = (build: string, title: string): Task => ({
-  itemId: title, issueNumber: 1, title, url: "", build, category: "Task",
-  source: "Self", column: "backlog", repo: "", branch: "",
+const mk = (build: string, title: string, column: Task["column"] = "next"): Task => ({
+  itemId: title, issueNumber: 1, title, url: "", build, category: "Build",
+  source: "Self", column, repo: "", branch: "",
 });
 
 describe("TableView", () => {
@@ -16,5 +16,9 @@ describe("TableView", () => {
       expect.stringContaining("Alpha"),
       expect.stringContaining("Gamma"),
     ]);
+  });
+  it("shows a status label for each task", () => {
+    render(<TableView tasks={[mk("Gamma", "g1", "inprogress")]} buildOrder={["Gamma"]} />);
+    expect(screen.getByText("In progress")).toBeInTheDocument();
   });
 });

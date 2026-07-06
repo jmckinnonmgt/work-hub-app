@@ -5,7 +5,7 @@ import type { Task } from "@/lib/types";
 
 const mk = (title: string): Task => ({
   itemId: title, issueNumber: 1, title, url: "", build: "General",
-  category: "Learn", source: "Self", column: "backlog", repo: "", branch: "",
+  category: "Learn", source: "Self", column: "next", repo: "", branch: "",
 });
 
 describe("LearnList", () => {

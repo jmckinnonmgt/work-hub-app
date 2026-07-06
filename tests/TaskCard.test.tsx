@@ -5,7 +5,7 @@ import type { Task } from "@/lib/types";
 
 const task: Task = {
   itemId: "I_1", issueNumber: 2, title: "Fix legacy model string", url: "",
-  build: "Gamma", category: "Task", source: "Manager", column: "inprogress",
+  build: "Gamma", category: "Build", source: "Manager", column: "inprogress",
   repo: "gamma", branch: "fix/model-string",
 };
 

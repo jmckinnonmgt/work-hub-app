@@ -22,13 +22,15 @@ import type { ProjectData } from "@/lib/types";
 
 const initial: ProjectData = {
   meta: { projectId: "P", status: { id: "F_status", name: "Status", options: [
-    { id: "o_backlog", name: "Backlog" }, { id: "o_done", name: "Done" } ] },
-    category: { id: "c", name: "Category", options: [] },
+    { id: "o_next", name: "Next" }, { id: "o_inprog", name: "In progress" },
+    { id: "o_blocked", name: "Blocked" }, { id: "o_done", name: "Done" } ] },
+    category: { id: "c", name: "Category", options: [
+      { id: "c_build", name: "Build" }, { id: "c_learn", name: "Learn" }, { id: "c_admin", name: "Administrative" } ] },
     build: { id: "b", name: "Build", options: [] },
     source: { id: "s", name: "Source", options: [] },
     repoNameFieldId: "r", branchFieldId: "br" },
   tasks: [{ itemId: "a", issueNumber: 1, title: "T-a", url: "", build: "General",
-    category: "Task", source: "Self", column: "backlog", repo: "", branch: "" }],
+    category: "Build", source: "Self", column: "next", repo: "", branch: "" }],
 };
 
 beforeEach(() => {
@@ -54,14 +56,14 @@ describe("AppClient optimistic move", () => {
     fireEvent.drop(screen.getByTestId("dropzone-done"));
     // flush pending microtasks so the caught rejection settles inside the test
     await act(async () => { await Promise.resolve(); });
-    // after rollback the card is still counted in Backlog
-    await waitFor(() => expect(screen.getByTestId("dropzone-backlog")).toHaveTextContent("T-a"));
+    // after rollback the card is still counted in Next
+    await waitFor(() => expect(screen.getByTestId("dropzone-next")).toHaveTextContent("T-a"));
   });
   it("hides the board when a non-board view is selected", () => {
     render(<AppClient initial={initial} />);
-    expect(screen.getByTestId("dropzone-backlog")).toBeInTheDocument();
+    expect(screen.getByTestId("dropzone-next")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /table/i }));
-    expect(screen.queryByTestId("dropzone-backlog")).toBeNull();
+    expect(screen.queryByTestId("dropzone-next")).toBeNull();
   });
   it("quick-add optimistically shows the task and calls addCard", async () => {
     addCard.mockResolvedValue(undefined);

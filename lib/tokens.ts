@@ -8,13 +8,11 @@ export const tokens = {
   chip: "#23262b", chipInk: "#b0b4bb",
   groupBg: "#262a30", groupInk: "#e8e9eb",
   status: {
-    backlog: "#868a92", next: "#77a2c6", inprogress: "#c49a58",
-    blocked: "#c47f72", done: "#84a984",
+    next: "#77a2c6", inprogress: "#c49a58", blocked: "#c47f72", done: "#84a984",
   } as Record<ColumnId, string>,
 };
 
 export const COLUMNS: ColumnDef[] = [
-  { id: "backlog", label: "Backlog", statusName: "Backlog" },
   { id: "next", label: "Next", statusName: "Next" },
   { id: "inprogress", label: "In progress", statusName: "In progress" },
   { id: "blocked", label: "Blocked", statusName: "Blocked" },
