@@ -3,6 +3,13 @@ export type Category = "Build" | "Learn" | "Administrative";
 export type Source = string;
 export type Build = string;
 
+export interface NewTask {
+  title: string;
+  category: Category;
+  build?: string;
+  column?: ColumnId;
+}
+
 export interface Task {
   itemId: string;          // Projects v2 item node id
   issueNumber: number;

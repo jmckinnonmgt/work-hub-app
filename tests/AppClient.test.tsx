@@ -36,7 +36,7 @@ const initial: ProjectData = {
 beforeEach(() => {
   moveCard.mockReset();
   addCard.mockReset();
-  addCard.mockResolvedValue(undefined);
+  addCard.mockResolvedValue("REAL_ID");
   behaviour = null;
 });
 
@@ -65,13 +65,14 @@ describe("AppClient optimistic move", () => {
     fireEvent.click(screen.getByRole("button", { name: /table/i }));
     expect(screen.queryByTestId("dropzone-next")).toBeNull();
   });
-  it("quick-add optimistically shows the task and calls addCard", async () => {
-    addCard.mockResolvedValue(undefined);
+  it("adds a task via the modal and makes it draggable with the real id", async () => {
+    addCard.mockResolvedValue("REAL_ID");
     render(<AppClient initial={initial} />);
-    fireEvent.change(screen.getByPlaceholderText(/add a task/i), { target: { value: "New thing" } });
+    fireEvent.click(screen.getByRole("button", { name: /add task/i }));
+    fireEvent.change(screen.getByLabelText(/task title/i), { target: { value: "New thing" } });
     fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
-    expect(screen.getByText("New thing")).toBeInTheDocument();
     await waitFor(() => expect(addCard).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText("New thing")).toBeInTheDocument());
   });
   it("does not call the GitHub API when in demo mode", () => {
     render(<AppClient initial={initial} demo />);

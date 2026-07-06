@@ -1,13 +1,13 @@
 "use client";
 import { useState } from "react";
-import type { Build, ColumnId, ProjectData, Task } from "@/lib/types";
+import type { Build, ColumnId, NewTask, ProjectData, Task } from "@/lib/types";
 import { applyFilters, boardTasks, buildTasks, columnCounts, learnList, adminList, type Filters } from "@/lib/views/derive";
 import { moveCard, addCard } from "@/lib/github/browser";
 import { tokens } from "@/lib/tokens";
 import { Board } from "./Board";
 import { NavRail } from "./NavRail";
 import { FilterBar } from "./FilterBar";
-import { QuickAdd } from "./QuickAdd";
+import { AddTaskModal } from "./AddTaskModal";
 import { TableView } from "./TableView";
 import { LearnList } from "./LearnList";
 import { AdministrativeView } from "./AdministrativeView";
@@ -19,6 +19,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
   const [tasks, setTasks] = useState<Task[]>(initial.tasks);
   const [view, setView] = useState<View>("board");
   const [fBuild, setFBuild] = useState<"All" | Build>("All");
+  const [adding, setAdding] = useState(false);
   const meta = initial.meta;
   const builds = meta.build.options.map((o) => o.name);
   const filters: Filters = { build: fBuild };
@@ -30,13 +31,22 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
     try { await moveCard(meta, itemId, column); } catch { setTasks(prev); }
   }
 
-  async function onAdd(title: string) {
+  async function onAdd(opts: NewTask) {
     const prev = tasks;
-    const temp: Task = { itemId: `temp-${Date.now()}`, issueNumber: 0, title, url: "",
-      build: "General", category: "Build", source: "Self", column: "next", repo: "", branch: "" };
+    const tempId = `temp-${Date.now()}`;
+    const temp: Task = {
+      itemId: tempId, issueNumber: 0, title: opts.title, url: "",
+      build: opts.build ?? "General", category: opts.category, source: "Self",
+      column: opts.column ?? null, repo: "", branch: "",
+    };
     setTasks((ts) => [...ts, temp]);
     if (demo) return;
-    try { await addCard(meta, title, "next"); } catch { setTasks(prev); }
+    try {
+      const realId = await addCard(meta, opts);
+      setTasks((ts) => ts.map((t) => (t.itemId === tempId ? { ...t, itemId: realId } : t)));
+    } catch {
+      setTasks(prev);
+    }
   }
 
   const filtered = applyFilters(tasks, filters);
@@ -51,13 +61,12 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
     <div style={{ display: "flex", height: "100%" }}>
       <NavRail view={view} setView={setView} counts={counts} />
       <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-        <header style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "15px 22px", borderBottom: `1px solid ${tokens.line}` }}>
+        <header style={{ display: "flex", alignItems: "center", gap: 12, padding: "15px 22px", borderBottom: `1px solid ${tokens.line}` }}>
           <span style={{ fontSize: 16, fontWeight: 650, color: tokens.ink }}>{VIEW_TITLES[view]}</span>
           <span style={{ fontSize: 12, color: tokens.ink3 }}>{viewCount} of {tasks.length} tasks</span>
+          <button onClick={() => setAdding(true)} style={{ marginLeft: "auto", background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add Task</button>
         </header>
-        <FilterBar fBuild={fBuild} setFBuild={setFBuild} builds={builds}>
-          <QuickAdd onAdd={onAdd} />
-        </FilterBar>
+        <FilterBar fBuild={fBuild} setFBuild={setFBuild} builds={builds} />
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           {view === "board" ? <Board tasks={board} onMove={onMove} />
             : view === "table" ? <TableView tasks={buildTasks(filtered)} buildOrder={builds} />
@@ -65,6 +74,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
             : <AdministrativeView tasks={adminList(filtered)} />}
         </div>
       </div>
+      {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} />}
     </div>
   );
 }

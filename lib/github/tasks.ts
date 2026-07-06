@@ -46,25 +46,29 @@ export async function moveTask(token: string, meta: FieldMeta, itemId: string, c
   });
 }
 
-export async function createTask(token: string, meta: FieldMeta, title: string, column: ColumnId): Promise<void> {
+export async function createTask(token: string, meta: FieldMeta, t: import("@/lib/types").NewTask): Promise<string> {
   const rest = _rest(token);
-  const issue = await rest.rest.issues.create({ owner: OWNER, repo: REPO, title });
+  const issue = await rest.rest.issues.create({ owner: OWNER, repo: REPO, title: t.title });
   const contentId = issue.data.node_id;
   const added = await _gql<{ addProjectV2ItemById: { item: { id: string } } }>(
     token, ADD_ITEM_MUTATION, { project: meta.projectId, content: contentId },
   );
   const itemId = added.addProjectV2ItemById.item.id;
-  const defaults: [FieldMeta["status"] | FieldMeta["category"] | FieldMeta["build"] | FieldMeta["source"], string][] = [
-    [meta.status, statusNameForColumn(column)],
-    [meta.category, "Build"],
+
+  const sets: [FieldMeta["category"], string | undefined][] = [
+    [meta.category, t.category],
     [meta.source, "Self"],
-    [meta.build, "General"],
   ];
-  for (const [field, name] of defaults) {
+  if (t.build) sets.push([meta.build, t.build]);
+  if (t.column) sets.push([meta.status, statusNameForColumn(t.column)]);
+
+  for (const [field, name] of sets) {
+    if (!name) continue;
     const opt = field.options.find((o) => o.name === name);
     if (!opt) continue;
     await _gql(token, UPDATE_FIELD_MUTATION, {
       project: meta.projectId, item: itemId, field: field.id, option: opt.id,
     });
   }
+  return itemId;
 }
