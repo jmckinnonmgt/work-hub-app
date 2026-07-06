@@ -15,7 +15,7 @@ import { MeetingsView } from "./MeetingsView";
 export type View = "board" | "table" | "learn" | "meetings";
 const VIEW_TITLES: Record<View, string> = { board: "Board", table: "Table", learn: "Learn", meetings: "Meetings" };
 
-export function AppClient({ initial }: { initial: ProjectData }) {
+export function AppClient({ initial, demo = false }: { initial: ProjectData; demo?: boolean }) {
   const [tasks, setTasks] = useState<Task[]>(initial.tasks);
   const [view, setView] = useState<View>("board");
   const [fBuild, setFBuild] = useState<"All" | Build>("All");
@@ -28,6 +28,7 @@ export function AppClient({ initial }: { initial: ProjectData }) {
   async function onMove(itemId: string, column: ColumnId) {
     const prev = tasks;
     setTasks((ts) => ts.map((t) => (t.itemId === itemId ? { ...t, column } : t)));
+    if (demo) return;
     try { await moveCard(meta, itemId, column); } catch { setTasks(prev); }
   }
 
@@ -36,6 +37,7 @@ export function AppClient({ initial }: { initial: ProjectData }) {
     const temp: Task = { itemId: `temp-${Date.now()}`, issueNumber: 0, title, url: "",
       build: "General", category: "Task", source: "Self", column: "backlog", repo: "", branch: "" };
     setTasks((ts) => [...ts, temp]);
+    if (demo) return;
     try { await addCard(meta, title, "backlog"); } catch { setTasks(prev); }
   }
 

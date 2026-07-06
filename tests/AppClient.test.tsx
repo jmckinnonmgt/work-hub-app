@@ -71,4 +71,11 @@ describe("AppClient optimistic move", () => {
     expect(screen.getByText("New thing")).toBeInTheDocument();
     await waitFor(() => expect(addCard).toHaveBeenCalled());
   });
+  it("does not call the GitHub API when in demo mode", () => {
+    render(<AppClient initial={initial} demo />);
+    fireEvent.dragStart(screen.getByText("T-a"));
+    fireEvent.dragOver(screen.getByTestId("dropzone-done"));
+    fireEvent.drop(screen.getByTestId("dropzone-done"));
+    expect(moveCard).not.toHaveBeenCalled();
+  });
 });

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { getToken, setToken } from "@/lib/github/token-store";
 import { tokens } from "@/lib/tokens";
 
-export function TokenGate({ children }: { children: React.ReactNode }) {
+export function TokenGate({ children, onDemo }: { children: React.ReactNode; onDemo?: () => void }) {
   const [has, setHas] = useState<boolean>(() => !!getToken());
   const [value, setValue] = useState("");
   if (has) return <>{children}</>;
@@ -28,6 +28,11 @@ export function TokenGate({ children }: { children: React.ReactNode }) {
           style={{ width: "100%", background: tokens.bg, border: `1px solid ${tokens.line}`, color: tokens.ink, borderRadius: 6, padding: "8px 10px", fontSize: 13, marginTop: 12 }}
         />
         <button onClick={save} style={{ marginTop: 12, width: "100%", background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "9px 12px", fontSize: 14, cursor: "pointer" }}>Save token</button>
+        {onDemo && (
+          <button onClick={onDemo} style={{ marginTop: 10, width: "100%", background: "transparent", color: tokens.ink2, border: `1px solid ${tokens.line}`, borderRadius: 6, padding: "8px 12px", fontSize: 13, cursor: "pointer" }}>
+            View demo (no token)
+          </button>
+        )}
       </div>
     </main>
   );
