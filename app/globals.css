@@ -1,0 +1,19 @@
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --bg: #131417; --panel: #191b1f; --panel2: #1d1f24;
+  --ink: #e8e9eb; --ink2: #9ea3aa; --ink3: #6c717a;
+  --line: #282b31;
+  --accent: #7aa7c7; --accent-soft: #1c2831; --on-accent: #121317;
+  --chip: #23262b; --chip-ink: #b0b4bb;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+.mono { font-family: "JetBrains Mono", monospace; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #8888881f; border-radius: 8px; border: 3px solid transparent; background-clip: padding-box; }

@@ -1,0 +1,30 @@
+{
+  "id": "PVT_kwHOEW9rns4BcTpJ",
+  "fields": { "nodes": [
+    { "__typename": "ProjectV2SingleSelectField", "id": "F_status", "name": "Status",
+      "options": [
+        { "id": "o_backlog", "name": "Backlog" },
+        { "id": "o_next", "name": "Next" },
+        { "id": "o_inprog", "name": "In progress" },
+        { "id": "o_blocked", "name": "Blocked" },
+        { "id": "o_done", "name": "Done" } ] },
+    { "__typename": "ProjectV2SingleSelectField", "id": "F_cat", "name": "Category",
+      "options": [ { "id": "c_task", "name": "Task" }, { "id": "c_learn", "name": "Learn" } ] },
+    { "__typename": "ProjectV2SingleSelectField", "id": "F_build", "name": "Build",
+      "options": [ { "id": "b_gamma", "name": "Gamma" }, { "id": "b_general", "name": "General" } ] },
+    { "__typename": "ProjectV2SingleSelectField", "id": "F_source", "name": "Source",
+      "options": [ { "id": "s_mgr", "name": "Manager" }, { "id": "s_self", "name": "Self" } ] },
+    { "__typename": "ProjectV2Field", "id": "F_repo", "name": "Repo name" },
+    { "__typename": "ProjectV2Field", "id": "F_branch", "name": "Branch" }
+  ] },
+  "items": { "pageInfo": { "hasNextPage": false, "endCursor": null }, "nodes": [
+    { "id": "I_1", "content": { "__typename": "Issue", "number": 2, "title": "Fix legacy model string", "url": "https://x/2" },
+      "fieldValues": { "nodes": [
+        { "__typename": "ProjectV2ItemFieldSingleSelectValue", "name": "In progress", "field": { "name": "Status" } },
+        { "__typename": "ProjectV2ItemFieldSingleSelectValue", "name": "Gamma", "field": { "name": "Build" } },
+        { "__typename": "ProjectV2ItemFieldSingleSelectValue", "name": "Manager", "field": { "name": "Source" } },
+        { "__typename": "ProjectV2ItemFieldTextValue", "text": "gamma", "field": { "name": "Repo name" } },
+        { "__typename": "ProjectV2ItemFieldTextValue", "text": "fix/model-string", "field": { "name": "Branch" } }
+      ] } }
+  ] }
+}
