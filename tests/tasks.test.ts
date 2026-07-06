@@ -27,7 +27,8 @@ describe("createTask", () => {
     const rest = () => ({ rest: { issues: { create: issuesCreate } } }) as any;
     __setTransportsForTest({ gql, rest });
     const { meta } = mapProject(raw as any);
-    await createTask("tok", meta, { title: "New thing", category: "Build", build: "General", column: "next" });
+    const id = await createTask("tok", meta, { title: "New thing", category: "Build", build: "General", column: "next" });
+    expect(id).toBe("NEW");
     expect(issuesCreate).toHaveBeenCalledWith(expect.objectContaining({ title: "New thing" }));
     // 1 add + category + source + build + status = 5 gql calls
     expect(gql).toHaveBeenCalledTimes(5);

@@ -74,6 +74,21 @@ describe("AppClient optimistic move", () => {
     await waitFor(() => expect(addCard).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByText("New thing")).toBeInTheDocument());
   });
+  it("makes a newly added task draggable with its real id", async () => {
+    addCard.mockResolvedValue("REAL_ID");
+    render(<AppClient initial={initial} />);
+    fireEvent.click(screen.getByRole("button", { name: /add task/i }));
+    fireEvent.change(screen.getByLabelText(/task title/i), { target: { value: "Fresh task" } });
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+    await screen.findByText("Fresh task");
+    await waitFor(() => expect(addCard).toHaveBeenCalled());
+    // now drag the new card; it must move with the REAL id, not a temp- id
+    fireEvent.dragStart(screen.getByText("Fresh task"));
+    const zone = screen.getByTestId("dropzone-done");
+    fireEvent.dragOver(zone);
+    fireEvent.drop(zone);
+    await waitFor(() => expect(moveCard).toHaveBeenCalledWith(expect.anything(), "REAL_ID", "done"));
+  });
   it("does not call the GitHub API when in demo mode", () => {
     render(<AppClient initial={initial} demo />);
     fireEvent.dragStart(screen.getByText("T-a"));
