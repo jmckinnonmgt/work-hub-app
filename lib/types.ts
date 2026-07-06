@@ -37,5 +37,17 @@ export interface FieldMeta {
   repoNameFieldId: string;
   branchFieldId: string;
 }
+export interface EditedTask {
+  itemId: string;
+  issueNumber: number;
+  title: string;
+  category: Category;
+  build: string;
+  source: string;
+  column: ColumnId | null;
+  repo: string;
+  branch: string;
+}
+
 export interface ProjectData { meta: FieldMeta; tasks: Task[]; }
 export interface ColumnDef { id: ColumnId; label: string; statusName: string; }

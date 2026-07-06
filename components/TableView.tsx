@@ -4,7 +4,7 @@ import type { Task } from "@/lib/types";
 import { tokens, COLUMNS } from "@/lib/tokens";
 import { tableGroups } from "@/lib/views/derive";
 
-export function TableView({ tasks, buildOrder }: { tasks: Task[]; buildOrder: string[] }) {
+export function TableView({ tasks, buildOrder, onOpen }: { tasks: Task[]; buildOrder: string[]; onOpen?: (task: Task) => void }) {
   const groups = tableGroups(tasks, buildOrder);
   const [collapsed, setCollapsed] = useState<Partial<Record<string, boolean>>>({});
   return (
@@ -20,7 +20,7 @@ export function TableView({ tasks, buildOrder }: { tasks: Task[]; buildOrder: st
             <span style={{ background: tokens.chip, color: tokens.chipInk, borderRadius: 20, fontSize: 11, padding: "1px 8px" }}>{g.tasks.length}</span>
           </button>
           {!collapsed[g.build] && g.tasks.map((t) => (
-            <div key={t.itemId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px 10px 37px", borderBottom: `1px solid ${tokens.line}`, fontSize: 13, color: tokens.ink }}>
+            <div key={t.itemId} onClick={() => onOpen?.(t)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px 10px 37px", borderBottom: `1px solid ${tokens.line}`, fontSize: 13, color: tokens.ink, cursor: "pointer" }}>
               <span style={{ flex: 1 }}>{t.title}</span>
               {t.column && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: tokens.ink2, fontSize: 12 }}>

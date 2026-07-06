@@ -5,11 +5,12 @@ import { tokens } from "@/lib/tokens";
 import { TaskCard } from "./TaskCard";
 
 export function Column({
-  col, tasks, onDropTask, onDragStart,
+  col, tasks, onDropTask, onDragStart, onOpen,
 }: {
   col: ColumnDef; tasks: Task[];
   onDropTask: (column: ColumnDef["id"]) => void;
   onDragStart: (id: string) => void;
+  onOpen?: (task: Task) => void;
 }) {
   const [over, setOver] = useState(false);
   return (
@@ -32,7 +33,7 @@ export function Column({
           transition: "background .12s",
         }}
       >
-        {tasks.map((t) => <TaskCard key={t.itemId} task={t} onDragStart={onDragStart} />)}
+        {tasks.map((t) => <TaskCard key={t.itemId} task={t} onDragStart={onDragStart} onOpen={onOpen} />)}
       </div>
     </div>
   );

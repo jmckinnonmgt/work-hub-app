@@ -14,6 +14,7 @@ vi.mock("@/lib/github/browser", () => ({
     return behaviour ? behaviour() : Promise.resolve();
   },
   addCard: (...a: unknown[]) => addCard(...a),
+  editCard: vi.fn(),
   loadBoard: vi.fn(),
 }));
 
@@ -95,5 +96,10 @@ describe("AppClient optimistic move", () => {
     fireEvent.dragOver(screen.getByTestId("dropzone-done"));
     fireEvent.drop(screen.getByTestId("dropzone-done"));
     expect(moveCard).not.toHaveBeenCalled();
+  });
+  it("opens the editor when a card is clicked", () => {
+    render(<AppClient initial={initial} />);
+    fireEvent.click(screen.getByText("T-a"));
+    expect(screen.getByRole("button", { name: /^save$/i })).toBeInTheDocument();
   });
 });

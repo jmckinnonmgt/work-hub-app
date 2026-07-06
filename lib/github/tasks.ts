@@ -4,7 +4,7 @@ import { mapProject, type RawProject } from "./mapping";
 import { statusNameForColumn } from "./mapping";
 import { githubGraphql, githubRest } from "./client";
 import {
-  PROJECT_QUERY, UPDATE_FIELD_MUTATION, ADD_ITEM_MUTATION,
+  PROJECT_QUERY, UPDATE_FIELD_MUTATION, UPDATE_TEXT_MUTATION, ADD_ITEM_MUTATION,
 } from "./queries";
 
 // Test seam: allow tests to inject fake transports.
@@ -71,4 +71,21 @@ export async function createTask(token: string, meta: FieldMeta, t: import("@/li
     });
   }
   return itemId;
+}
+
+export async function updateTask(token: string, meta: FieldMeta, t: import("@/lib/types").EditedTask): Promise<void> {
+  const rest = _rest(token);
+  await rest.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: t.issueNumber, title: t.title });
+
+  const setSel = async (field: FieldMeta["category"], name: string) => {
+    const o = field.options.find((x) => x.name === name);
+    if (o) await _gql(token, UPDATE_FIELD_MUTATION, { project: meta.projectId, item: t.itemId, field: field.id, option: o.id });
+  };
+  await setSel(meta.category, t.category);
+  if (t.build) await setSel(meta.build, t.build);
+  if (t.source) await setSel(meta.source, t.source);
+  if (t.column) await setSel(meta.status, statusNameForColumn(t.column));
+
+  await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.repoNameFieldId, text: t.repo });
+  await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.branchFieldId, text: t.branch });
 }

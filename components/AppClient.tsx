@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
-import type { Build, ColumnId, NewTask, ProjectData, Task } from "@/lib/types";
+import type { Build, ColumnId, EditedTask, NewTask, ProjectData, Task } from "@/lib/types";
 import { applyFilters, boardTasks, buildTasks, columnCounts, learnList, adminList, type Filters } from "@/lib/views/derive";
-import { moveCard, addCard } from "@/lib/github/browser";
+import { moveCard, addCard, editCard } from "@/lib/github/browser";
 import { tokens } from "@/lib/tokens";
 import { Board } from "./Board";
 import { NavRail } from "./NavRail";
 import { FilterBar } from "./FilterBar";
 import { AddTaskModal } from "./AddTaskModal";
+import { TaskEditModal } from "./TaskEditModal";
 import { TableView } from "./TableView";
 import { LearnList } from "./LearnList";
 import { AdministrativeView } from "./AdministrativeView";
@@ -20,6 +21,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
   const [view, setView] = useState<View>("board");
   const [fBuild, setFBuild] = useState<"All" | Build>("All");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Task | null>(null);
   const meta = initial.meta;
   const builds = meta.build.options.map((o) => o.name);
   const filters: Filters = { build: fBuild };
@@ -49,6 +51,15 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
     }
   }
 
+  async function onSave(e: EditedTask) {
+    const prev = tasks;
+    setTasks((ts) => ts.map((t) => (t.itemId === e.itemId
+      ? { ...t, title: e.title, category: e.category, build: e.build, source: e.source, column: e.column, repo: e.repo, branch: e.branch }
+      : t)));
+    setEditing(null);
+    try { await editCard(meta, e); } catch { setTasks(prev); }
+  }
+
   const filtered = applyFilters(tasks, filters);
   const board = boardTasks(filtered);
   const counts = columnCounts(board);
@@ -68,13 +79,14 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
         </header>
         <FilterBar fBuild={fBuild} setFBuild={setFBuild} builds={builds} />
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-          {view === "board" ? <Board tasks={board} onMove={onMove} />
-            : view === "table" ? <TableView tasks={buildTasks(filtered)} buildOrder={builds} />
-            : view === "learn" ? <LearnList tasks={learnList(filtered)} />
-            : <AdministrativeView tasks={adminList(filtered)} />}
+          {view === "board" ? <Board tasks={board} onMove={onMove} onOpen={setEditing} />
+            : view === "table" ? <TableView tasks={buildTasks(filtered)} buildOrder={builds} onOpen={setEditing} />
+            : view === "learn" ? <LearnList tasks={learnList(filtered)} onOpen={setEditing} />
+            : <AdministrativeView tasks={adminList(filtered)} onOpen={setEditing} />}
         </div>
       </div>
       {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} />}
+      {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onClose={() => setEditing(null)} />}
     </div>
   );
 }

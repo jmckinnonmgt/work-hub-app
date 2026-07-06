@@ -2,11 +2,12 @@
 import type { Task } from "@/lib/types";
 import { tokens } from "@/lib/tokens";
 
-export function TaskCard({ task, onDragStart }: { task: Task; onDragStart?: (id: string) => void }) {
+export function TaskCard({ task, onDragStart, onOpen }: { task: Task; onDragStart?: (id: string) => void; onOpen?: (task: Task) => void }) {
   return (
     <div
       draggable
       onDragStart={() => onDragStart?.(task.itemId)}
+      onClick={() => onOpen?.(task)}
       style={{
         border: `1px solid ${tokens.line}`, background: tokens.panel, borderRadius: 6,
         padding: "11px 12px", cursor: "grab",
