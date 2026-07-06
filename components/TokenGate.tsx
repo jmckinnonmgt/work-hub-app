@@ -1,11 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getToken, setToken } from "@/lib/github/token-store";
 import { tokens } from "@/lib/tokens";
 
 export function TokenGate({ children, onDemo }: { children: React.ReactNode; onDemo?: () => void }) {
-  const [has, setHas] = useState<boolean>(() => !!getToken());
+  const [mounted, setMounted] = useState(false);
+  const [has, setHas] = useState(false);
   const [value, setValue] = useState("");
+  useEffect(() => {
+    setHas(!!getToken());
+    setMounted(true);
+  }, []);
+  if (!mounted) return <main style={{ height: "100vh", background: tokens.bg }} />;
   if (has) return <>{children}</>;
   function save() {
     const v = value.trim();
