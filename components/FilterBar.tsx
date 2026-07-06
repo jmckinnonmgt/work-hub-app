@@ -2,10 +2,9 @@
 import type { Build } from "@/lib/types";
 import { tokens } from "@/lib/tokens";
 
-export function FilterBar({ fBuild, setFBuild, builds, children }: {
+export function FilterBar({ fBuild, setFBuild, builds }: {
   fBuild: "All" | Build; setFBuild: (b: "All" | Build) => void;
   builds: string[];
-  children?: React.ReactNode;
 }) {
   const selStyle: React.CSSProperties = { appearance: "none", background: tokens.panel, color: tokens.ink, border: `1px solid ${tokens.line}`, borderRadius: 5, padding: "5px 9px", fontSize: 12.5, cursor: "pointer" };
   return (
@@ -16,7 +15,6 @@ export function FilterBar({ fBuild, setFBuild, builds, children }: {
         {builds.map((b) => <option key={b} value={b}>{b}</option>)}
       </select>
       <div style={{ flex: 1 }} />
-      {children}
     </div>
   );
 }

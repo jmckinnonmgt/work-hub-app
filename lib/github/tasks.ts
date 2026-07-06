@@ -4,7 +4,7 @@ import { mapProject, type RawProject } from "./mapping";
 import { statusNameForColumn } from "./mapping";
 import { githubGraphql, githubRest } from "./client";
 import {
-  PROJECT_QUERY, UPDATE_FIELD_MUTATION, UPDATE_TEXT_MUTATION, ADD_ITEM_MUTATION,
+  PROJECT_QUERY, UPDATE_FIELD_MUTATION, UPDATE_TEXT_MUTATION, ADD_ITEM_MUTATION, CLEAR_FIELD_MUTATION,
 } from "./queries";
 
 // Test seam: allow tests to inject fake transports.
@@ -81,10 +81,13 @@ export async function updateTask(token: string, meta: FieldMeta, t: import("@/li
     const o = field.options.find((x) => x.name === name);
     if (o) await _gql(token, UPDATE_FIELD_MUTATION, { project: meta.projectId, item: t.itemId, field: field.id, option: o.id });
   };
+  const clear = async (field: FieldMeta["category"]) => {
+    await _gql(token, CLEAR_FIELD_MUTATION, { project: meta.projectId, item: t.itemId, field: field.id });
+  };
   await setSel(meta.category, t.category);
-  if (t.build) await setSel(meta.build, t.build);
+  if (t.build) await setSel(meta.build, t.build); else await clear(meta.build);
   if (t.source) await setSel(meta.source, t.source);
-  if (t.column) await setSel(meta.status, statusNameForColumn(t.column));
+  if (t.column) await setSel(meta.status, statusNameForColumn(t.column)); else await clear(meta.status);
 
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.repoNameFieldId, text: t.repo });
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.branchFieldId, text: t.branch });

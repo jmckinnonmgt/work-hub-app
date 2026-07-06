@@ -23,7 +23,7 @@ export function TaskEditModal({ task, builds, sources, onSave, onClose }: {
     onSave({
       itemId: task.itemId, issueNumber: task.issueNumber, title: t,
       category, build: category === "Build" ? build : "",
-      source, column: category === "Learn" ? null : column, repo, branch,
+      source, column: category === "Learn" ? null : (column ?? "next"), repo, branch,
     });
     onClose();
   }

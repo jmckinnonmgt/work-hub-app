@@ -47,6 +47,14 @@ export const UPDATE_TEXT_MUTATION = /* GraphQL */ `
   }
 `;
 
+export const CLEAR_FIELD_MUTATION = /* GraphQL */ `
+  mutation($project: ID!, $item: ID!, $field: ID!) {
+    clearProjectV2ItemFieldValue(input: { projectId: $project, itemId: $item, fieldId: $field }) {
+      projectV2Item { id }
+    }
+  }
+`;
+
 export const ADD_ITEM_MUTATION = /* GraphQL */ `
   mutation($project: ID!, $content: ID!) {
     addProjectV2ItemById(input: { projectId: $project, contentId: $content }) {

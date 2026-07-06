@@ -3,6 +3,7 @@ import raw from "./fixtures/project.json";
 import { moveTask, __setTransportsForTest } from "@/lib/github/tasks";
 import { mapProject } from "@/lib/github/mapping";
 import { createTask } from "@/lib/github/tasks";
+import { updateTask } from "@/lib/github/tasks";
 
 describe("moveTask", () => {
   it("updates the Status field with the option id for the target column", async () => {
@@ -32,5 +33,24 @@ describe("createTask", () => {
     expect(issuesCreate).toHaveBeenCalledWith(expect.objectContaining({ title: "New thing" }));
     // 1 add + category + source + build + status = 5 gql calls
     expect(gql).toHaveBeenCalledTimes(5);
+  });
+});
+
+describe("updateTask", () => {
+  it("clears build and status fields when the edited task has none", async () => {
+    const gql = vi.fn().mockResolvedValue({});
+    const issuesUpdate = vi.fn().mockResolvedValue({});
+    const rest = () => ({ rest: { issues: { update: issuesUpdate } } }) as any;
+    __setTransportsForTest({ gql, rest });
+    const { meta } = mapProject(raw as any);
+    await updateTask("tok", meta, {
+      itemId: "I_1", issueNumber: 2, title: "Fix legacy model string",
+      category: "Learn", build: "", source: "Self", column: null, repo: "gamma", branch: "fix/model-string",
+    });
+    const clearCalls = gql.mock.calls.filter(([, query]) => query.includes("clearProjectV2ItemFieldValue"));
+    expect(clearCalls.length).toBe(2);
+    const clearedFields = clearCalls.map(([, , vars]) => vars.field);
+    expect(clearedFields).toContain(meta.build.id);
+    expect(clearedFields).toContain(meta.status.id);
   });
 });
