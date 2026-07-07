@@ -12,20 +12,17 @@ const sampleState: FlowState = {
 
 describe("loadFlow", () => {
   it("returns the parsed state and sha on success", async () => {
-    const getContent = vi.fn().mockResolvedValue({
-      data: { content: encode(JSON.stringify(sampleState)), sha: "abc" },
-    });
-    const rest = () => ({ rest: { repos: { getContent, createOrUpdateFileContents: vi.fn() } } }) as any;
-    __setFlowRestForTest(rest);
+    const b64 = encode(JSON.stringify(sampleState));
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200, ok: true, json: async () => ({ content: b64, sha: "abc" }),
+    } as unknown as Response);
     const { state, sha } = await loadFlow("tok");
     expect(state).toEqual(sampleState);
     expect(sha).toBe("abc");
   });
 
   it("returns null state and sha when the file does not exist (404)", async () => {
-    const getContent = vi.fn().mockRejectedValue({ status: 404 });
-    const rest = () => ({ rest: { repos: { getContent, createOrUpdateFileContents: vi.fn() } } }) as any;
-    __setFlowRestForTest(rest);
+    global.fetch = vi.fn().mockResolvedValue({ status: 404, ok: false } as unknown as Response);
     const { state, sha } = await loadFlow("tok");
     expect(state).toBeNull();
     expect(sha).toBeNull();
@@ -52,11 +49,12 @@ describe("saveFlow", () => {
     const createOrUpdateFileContents = vi.fn()
       .mockRejectedValueOnce({ status: 409 })
       .mockResolvedValueOnce({ data: { content: { sha: "resolvedsha" } } });
-    const getContent = vi.fn().mockResolvedValue({
-      data: { content: encode(JSON.stringify(sampleState)), sha: "latestsha" },
-    });
-    const rest = () => ({ rest: { repos: { getContent, createOrUpdateFileContents } } }) as any;
+    const rest = () => ({ rest: { repos: { getContent: vi.fn(), createOrUpdateFileContents } } }) as any;
     __setFlowRestForTest(rest);
+    const b64 = encode(JSON.stringify(sampleState));
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200, ok: true, json: async () => ({ content: b64, sha: "latestsha" }),
+    } as unknown as Response);
     const result = await saveFlow("tok", sampleState, "stalesha");
     expect(result).toBe("resolvedsha");
     expect(createOrUpdateFileContents).toHaveBeenCalledTimes(2);

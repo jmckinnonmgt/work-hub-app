@@ -12,16 +12,14 @@ function encode(s: string): string { return btoa(unescape(encodeURIComponent(s))
 function decode(b: string): string { return decodeURIComponent(escape(atob(b.replace(/\s/g, "")))); }
 
 export async function loadFlow(token: string): Promise<{ state: FlowState | null; sha: string | null }> {
-  const rest = _rest(token);
-  try {
-    const res = await rest.rest.repos.getContent({ owner: OWNER, repo: REPO, path: PATH });
-    const data = res.data as { content?: string; sha: string };
-    if (!data.content) return { state: null, sha: data.sha ?? null };
-    return { state: JSON.parse(decode(data.content)) as FlowState, sha: data.sha };
-  } catch (e) {
-    if ((e as { status?: number }).status === 404) return { state: null, sha: null };
-    throw e;
-  }
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(PATH)}`, {
+    headers: { Authorization: `token ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (res.status === 404) return { state: null, sha: null };
+  if (!res.ok) throw new Error(`GitHub responded ${res.status} loading the flow map`);
+  const data = (await res.json()) as { content?: string; sha: string };
+  if (!data.content) return { state: null, sha: data.sha ?? null };
+  return { state: JSON.parse(decode(data.content)) as FlowState, sha: data.sha };
 }
 
 export async function saveFlow(token: string, state: FlowState, sha: string | null): Promise<string> {
