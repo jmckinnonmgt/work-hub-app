@@ -1,5 +1,5 @@
 import { getToken } from "./token-store";
-import { listTasks, moveTask, createTask, updateTask } from "./tasks";
+import { listTasks, moveTask, createTask, updateTask, deleteTask } from "./tasks";
 import type { ColumnId, EditedTask, FieldMeta, NewTask, ProjectData } from "@/lib/types";
 
 function requireToken(): string {
@@ -19,4 +19,7 @@ export function addCard(meta: FieldMeta, t: NewTask): Promise<string> {
 }
 export function editCard(meta: FieldMeta, t: EditedTask): Promise<void> {
   return updateTask(requireToken(), meta, t);
+}
+export function deleteCard(meta: FieldMeta, itemId: string, issueNumber: number): Promise<void> {
+  return deleteTask(requireToken(), meta, itemId, issueNumber);
 }

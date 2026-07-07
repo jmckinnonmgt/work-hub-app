@@ -62,3 +62,9 @@ export const ADD_ITEM_MUTATION = /* GraphQL */ `
     }
   }
 `;
+
+export const DELETE_ITEM_MUTATION = /* GraphQL */ `
+  mutation($project: ID!, $item: ID!) {
+    deleteProjectV2Item(input: { projectId: $project, itemId: $item }) { deletedItemId }
+  }
+`;

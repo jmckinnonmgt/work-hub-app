@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 
 const moveCard = vi.fn();
 const addCard = vi.fn();
+const deleteCard = vi.fn();
 // `behaviour` lets a test make the action reject WITHOUT routing that rejection through a
 // vi mock's result tracking. AppClient.onMove awaits and catches it either way, but a
 // plain rejecting function avoids a Vitest 4 quirk where a caught rejection produced by a
@@ -15,6 +16,7 @@ vi.mock("@/lib/github/browser", () => ({
   },
   addCard: (...a: unknown[]) => addCard(...a),
   editCard: vi.fn(),
+  deleteCard: (...a: unknown[]) => deleteCard(...a),
   loadBoard: vi.fn(),
 }));
 
@@ -37,7 +39,9 @@ const initial: ProjectData = {
 beforeEach(() => {
   moveCard.mockReset();
   addCard.mockReset();
+  deleteCard.mockReset();
   addCard.mockResolvedValue("REAL_ID");
+  deleteCard.mockResolvedValue(undefined);
   behaviour = null;
 });
 
@@ -101,5 +105,13 @@ describe("AppClient optimistic move", () => {
     render(<AppClient initial={initial} />);
     fireEvent.click(screen.getByText("T-a"));
     expect(screen.getByRole("button", { name: /^save$/i })).toBeInTheDocument();
+  });
+  it("deletes a task from the edit modal after two-step confirm", async () => {
+    render(<AppClient initial={initial} />);
+    fireEvent.click(screen.getByText("T-a"));
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /click to confirm delete/i }));
+    expect(screen.queryByText("T-a")).toBeNull();
+    await waitFor(() => expect(deleteCard).toHaveBeenCalled());
   });
 });

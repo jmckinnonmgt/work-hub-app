@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { Build, ColumnId, EditedTask, NewTask, ProjectData, Task } from "@/lib/types";
 import { applyFilters, boardTasks, buildTasks, columnCounts, learnList, adminList, type Filters } from "@/lib/views/derive";
-import { moveCard, addCard, editCard } from "@/lib/github/browser";
+import { moveCard, addCard, editCard, deleteCard } from "@/lib/github/browser";
 import { tokens } from "@/lib/tokens";
 import { Board } from "./Board";
 import { NavRail } from "./NavRail";
@@ -60,6 +60,14 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
     try { await editCard(meta, e); } catch { setTasks(prev); }
   }
 
+  async function onDelete(task: Task) {
+    const prev = tasks;
+    setTasks((ts) => ts.filter((t) => t.itemId !== task.itemId));
+    setEditing(null);
+    if (demo) return;
+    try { await deleteCard(meta, task.itemId, task.issueNumber); } catch { setTasks(prev); }
+  }
+
   const filtered = applyFilters(tasks, filters);
   const board = boardTasks(filtered);
   const counts = columnCounts(board);
@@ -86,7 +94,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
         </div>
       </div>
       {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} />}
-      {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onClose={() => setEditing(null)} />}
+      {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onDelete={onDelete} onClose={() => setEditing(null)} />}
     </div>
   );
 }

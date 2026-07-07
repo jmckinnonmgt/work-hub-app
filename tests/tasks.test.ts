@@ -4,6 +4,7 @@ import { moveTask, __setTransportsForTest } from "@/lib/github/tasks";
 import { mapProject } from "@/lib/github/mapping";
 import { createTask } from "@/lib/github/tasks";
 import { updateTask } from "@/lib/github/tasks";
+import { deleteTask } from "@/lib/github/tasks";
 
 describe("moveTask", () => {
   it("updates the Status field with the option id for the target column", async () => {
@@ -52,5 +53,21 @@ describe("updateTask", () => {
     const clearedFields = clearCalls.map(([, , vars]) => vars.field);
     expect(clearedFields).toContain(meta.build.id);
     expect(clearedFields).toContain(meta.status.id);
+  });
+});
+
+describe("deleteTask", () => {
+  it("deletes the project item and closes the issue", async () => {
+    const gql = vi.fn().mockResolvedValue({});
+    const issuesUpdate = vi.fn().mockResolvedValue({});
+    const rest = () => ({ rest: { issues: { update: issuesUpdate, create: vi.fn() } } }) as any;
+    __setTransportsForTest({ gql, rest });
+    const { meta } = mapProject(raw as any);
+    await deleteTask("tok", meta, "I_1", 2);
+    expect(gql).toHaveBeenCalledOnce();
+    const [, query, vars] = gql.mock.calls[0];
+    expect(query).toContain("deleteProjectV2Item");
+    expect(vars.item).toBe("I_1");
+    expect(issuesUpdate).toHaveBeenCalledWith(expect.objectContaining({ issue_number: 2, state: "closed" }));
   });
 });

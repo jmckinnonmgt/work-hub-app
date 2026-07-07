@@ -5,6 +5,7 @@ import { statusNameForColumn } from "./mapping";
 import { githubGraphql, githubRest } from "./client";
 import {
   PROJECT_QUERY, UPDATE_FIELD_MUTATION, UPDATE_TEXT_MUTATION, ADD_ITEM_MUTATION, CLEAR_FIELD_MUTATION,
+  DELETE_ITEM_MUTATION,
 } from "./queries";
 
 // Test seam: allow tests to inject fake transports.
@@ -91,4 +92,12 @@ export async function updateTask(token: string, meta: FieldMeta, t: import("@/li
 
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.repoNameFieldId, text: t.repo });
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.branchFieldId, text: t.branch });
+}
+
+export async function deleteTask(token: string, meta: FieldMeta, itemId: string, issueNumber: number): Promise<void> {
+  await _gql(token, DELETE_ITEM_MUTATION, { project: meta.projectId, item: itemId });
+  if (issueNumber) {
+    const rest = _rest(token);
+    await rest.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: issueNumber, state: "closed" });
+  }
 }

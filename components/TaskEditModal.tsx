@@ -5,9 +5,9 @@ import type { Category, ColumnId, EditedTask, Task } from "@/lib/types";
 
 const TYPES: Category[] = ["Administrative", "Learn", "Build"];
 
-export function TaskEditModal({ task, builds, sources, onSave, onClose }: {
+export function TaskEditModal({ task, builds, sources, onSave, onDelete, onClose }: {
   task: Task; builds: string[]; sources: string[];
-  onSave: (t: EditedTask) => void; onClose: () => void;
+  onSave: (t: EditedTask) => void; onDelete: (task: Task) => void; onClose: () => void;
 }) {
   const [title, setTitle] = useState(task.title);
   const [category, setCategory] = useState<Category>(task.category ?? "Build");
@@ -16,6 +16,7 @@ export function TaskEditModal({ task, builds, sources, onSave, onClose }: {
   const [column, setColumn] = useState<ColumnId | null>(task.column);
   const [repo, setRepo] = useState(task.repo);
   const [branch, setBranch] = useState(task.branch);
+  const [confirming, setConfirming] = useState(false);
 
   function save() {
     const t = title.trim();
@@ -53,9 +54,16 @@ export function TaskEditModal({ task, builds, sources, onSave, onClose }: {
         <input aria-label="Repo" value={repo} onChange={(e) => setRepo(e.target.value)} style={field} />
         <div style={label}>Branch</div>
         <input aria-label="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} style={field} />
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} style={{ background: "transparent", color: tokens.ink2, border: `1px solid ${tokens.line}`, borderRadius: 6, padding: "7px 14px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
-          <button onClick={save} style={{ background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 16px", fontSize: 13, cursor: "pointer" }}>Save</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 18 }}>
+          {confirming ? (
+            <button onClick={() => { onDelete(task); onClose(); }} style={{ background: tokens.status.blocked, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 12px", fontSize: 13, cursor: "pointer" }}>Click to confirm delete</button>
+          ) : (
+            <button onClick={() => setConfirming(true)} style={{ background: "transparent", color: tokens.status.blocked, border: `1px solid ${tokens.status.blocked}`, borderRadius: 6, padding: "7px 12px", fontSize: 13, cursor: "pointer" }}>Delete</button>
+          )}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={onClose} style={{ background: "transparent", color: tokens.ink2, border: `1px solid ${tokens.line}`, borderRadius: 6, padding: "7px 14px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
+            <button onClick={save} style={{ background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 16px", fontSize: 13, cursor: "pointer" }}>Save</button>
+          </div>
         </div>
       </div>
     </div>
