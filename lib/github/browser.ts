@@ -1,6 +1,8 @@
 import { getToken } from "./token-store";
 import { listTasks, moveTask, createTask, updateTask, deleteTask } from "./tasks";
+import { loadFlow, saveFlow } from "./flow";
 import type { ColumnId, EditedTask, FieldMeta, NewTask, ProjectData } from "@/lib/types";
+import type { FlowState } from "@/lib/flow/types";
 
 function requireToken(): string {
   const t = getToken();
@@ -22,4 +24,10 @@ export function editCard(meta: FieldMeta, t: EditedTask): Promise<void> {
 }
 export function deleteCard(meta: FieldMeta, itemId: string, issueNumber: number): Promise<void> {
   return deleteTask(requireToken(), meta, itemId, issueNumber);
+}
+export function loadFlowState(): Promise<{ state: FlowState | null; sha: string | null }> {
+  return loadFlow(requireToken());
+}
+export function saveFlowState(state: FlowState, sha: string | null): Promise<string> {
+  return saveFlow(requireToken(), state, sha);
 }

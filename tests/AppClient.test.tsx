@@ -18,6 +18,8 @@ vi.mock("@/lib/github/browser", () => ({
   editCard: vi.fn(),
   deleteCard: (...a: unknown[]) => deleteCard(...a),
   loadBoard: vi.fn(),
+  loadFlowState: vi.fn().mockResolvedValue({ state: null, sha: null }),
+  saveFlowState: vi.fn(),
 }));
 
 import { AppClient } from "@/components/AppClient";
@@ -113,5 +115,10 @@ describe("AppClient optimistic move", () => {
     fireEvent.click(screen.getByRole("button", { name: /click to confirm delete/i }));
     expect(screen.queryByText("T-a")).toBeNull();
     await waitFor(() => expect(deleteCard).toHaveBeenCalled());
+  });
+  it("renders the flow canvas when the Flow nav item is clicked", async () => {
+    render(<AppClient initial={initial} />);
+    fireEvent.click(screen.getByRole("button", { name: /^flow$/i }));
+    await waitFor(() => expect(screen.getByText("Test")).toBeInTheDocument());
   });
 });
