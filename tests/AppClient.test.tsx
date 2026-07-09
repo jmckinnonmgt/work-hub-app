@@ -20,6 +20,7 @@ vi.mock("@/lib/github/browser", () => ({
   loadBoard: vi.fn(),
   loadFlowState: vi.fn().mockResolvedValue({ state: null, sha: null }),
   saveFlowState: vi.fn(),
+  createBuildOption: vi.fn().mockResolvedValue(["Atlas", "Morpheus", "General", "New"]),
 }));
 
 import { AppClient } from "@/components/AppClient";

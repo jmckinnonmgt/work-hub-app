@@ -5,10 +5,21 @@ import type { NewTask } from "@/lib/types";
 
 type TypeChoice = "Administrative" | "Learn" | "Build";
 
-export function AddTaskModal({ builds, onAdd, onClose }: { builds: string[]; onAdd: (t: NewTask) => void; onClose: () => void }) {
+export function AddTaskModal({ builds, onAdd, onClose, onAddBuild }: { builds: string[]; onAdd: (t: NewTask) => void; onClose: () => void; onAddBuild?: (name: string) => Promise<void> | void }) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<TypeChoice>("Build");
   const [build, setBuild] = useState(builds[0] ?? "General");
+  const [addingBuild, setAddingBuild] = useState(false);
+  const [newBuildName, setNewBuildName] = useState("");
+
+  async function addBuild() {
+    const n = newBuildName.trim();
+    if (!n) return;
+    await onAddBuild?.(n);
+    setBuild(n);
+    setAddingBuild(false);
+    setNewBuildName("");
+  }
 
   function submit() {
     const t = title.trim();
@@ -44,6 +55,15 @@ export function AddTaskModal({ builds, onAdd, onClose }: { builds: string[]; onA
             <select aria-label="Build" value={build} onChange={(e) => setBuild(e.target.value)} style={{ width: "100%", background: tokens.bg, border: `1px solid ${tokens.line}`, color: tokens.ink, borderRadius: 6, padding: "7px 9px", fontSize: 13 }}>
               {builds.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
+            {addingBuild ? (
+              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                <input autoFocus value={newBuildName} onChange={(e) => setNewBuildName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addBuild(); }} placeholder="New build name" aria-label="New build name"
+                  style={{ flex: 1, background: tokens.bg, border: `1px solid ${tokens.line}`, color: tokens.ink, borderRadius: 6, padding: "7px 9px", fontSize: 13 }} />
+                <button onClick={addBuild} aria-label="Add build" style={{ background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 14px", fontSize: 13, cursor: "pointer" }}>Add</button>
+              </div>
+            ) : (
+              <button onClick={() => setAddingBuild(true)} style={{ background: "transparent", color: tokens.accent, border: "none", padding: 0, marginTop: 8, fontSize: 12, cursor: "pointer" }}>+ New build</button>
+            )}
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>

@@ -68,3 +68,11 @@ export const DELETE_ITEM_MUTATION = /* GraphQL */ `
     deleteProjectV2Item(input: { projectId: $project, itemId: $item }) { deletedItemId }
   }
 `;
+
+export const UPDATE_BUILD_OPTIONS_MUTATION = /* GraphQL */ `
+  mutation($field: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+    updateProjectV2Field(input: { fieldId: $field, singleSelectOptions: $options }) {
+      projectV2Field { __typename }
+    }
+  }
+`;

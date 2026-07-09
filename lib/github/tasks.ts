@@ -5,7 +5,7 @@ import { statusNameForColumn } from "./mapping";
 import { githubGraphql, githubRest } from "./client";
 import {
   PROJECT_QUERY, UPDATE_FIELD_MUTATION, UPDATE_TEXT_MUTATION, ADD_ITEM_MUTATION, CLEAR_FIELD_MUTATION,
-  DELETE_ITEM_MUTATION,
+  DELETE_ITEM_MUTATION, UPDATE_BUILD_OPTIONS_MUTATION,
 } from "./queries";
 
 // Test seam: allow tests to inject fake transports.
@@ -92,6 +92,25 @@ export async function updateTask(token: string, meta: FieldMeta, t: import("@/li
 
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.repoNameFieldId, text: t.repo });
   await _gql(token, UPDATE_TEXT_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.branchFieldId, text: t.branch });
+}
+
+export async function addBuildOption(token: string, newName: string): Promise<string[]> {
+  const name = newName.trim();
+  const { meta, tasks } = await listTasks(token);
+  const names = meta.build.options.map((o) => o.name);
+  if (!name || names.includes(name)) return names;
+  const options = [...names, name].map((n) => ({ name: n, color: "GRAY", description: "" }));
+  await _gql(token, UPDATE_BUILD_OPTIONS_MUTATION, { field: meta.build.id, options });
+  // The option swap clears item values for the Build field; reread new ids and re-apply.
+  const { meta: meta2 } = await listTasks(token);
+  const idByName: Record<string, string> = {};
+  for (const o of meta2.build.options) idByName[o.name] = o.id;
+  for (const t of tasks) {
+    if (t.build && idByName[t.build]) {
+      await _gql(token, UPDATE_FIELD_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.build.id, option: idByName[t.build] });
+    }
+  }
+  return [...names, name];
 }
 
 export async function deleteTask(token: string, meta: FieldMeta, itemId: string, issueNumber: number): Promise<void> {

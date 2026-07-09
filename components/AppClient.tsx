@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { Build, ColumnId, EditedTask, NewTask, ProjectData, Task } from "@/lib/types";
 import { applyFilters, boardTasks, buildTasks, columnCounts, learnList, adminList, type Filters } from "@/lib/views/derive";
-import { moveCard, addCard, editCard, deleteCard } from "@/lib/github/browser";
+import { moveCard, addCard, editCard, deleteCard, createBuildOption } from "@/lib/github/browser";
 import { tokens } from "@/lib/tokens";
 import { Board } from "./Board";
 import { NavRail } from "./NavRail";
@@ -24,8 +24,16 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const meta = initial.meta;
-  const builds = meta.build.options.map((o) => o.name);
+  const [builds, setBuilds] = useState<string[]>(() => meta.build.options.map((o) => o.name));
   const filters: Filters = { build: fBuild };
+
+  async function onAddBuild(name: string) {
+    const n = name.trim();
+    if (!n || builds.includes(n)) return;
+    setBuilds((b) => [...b, n]);           // optimistic
+    if (demo) return;
+    try { await createBuildOption(n); } catch { setBuilds((b) => b.filter((x) => x !== n)); }
+  }
 
   async function onMove(itemId: string, column: ColumnId) {
     const prev = tasks;
@@ -100,7 +108,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
           </>
         )}
       </div>
-      {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} />}
+      {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} onAddBuild={onAddBuild} />}
       {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onDelete={onDelete} onClose={() => setEditing(null)} />}
     </div>
   );
