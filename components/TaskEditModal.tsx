@@ -5,9 +5,10 @@ import type { Category, ColumnId, EditedTask, Task } from "@/lib/types";
 
 const TYPES: Category[] = ["Administrative", "Learn", "Build"];
 
-export function TaskEditModal({ task, builds, sources, onSave, onDelete, onClose }: {
+export function TaskEditModal({ task, builds, sources, onSave, onDelete, onClose, onAddBuild }: {
   task: Task; builds: string[]; sources: string[];
   onSave: (t: EditedTask) => void; onDelete: (task: Task) => void; onClose: () => void;
+  onAddBuild?: (name: string) => Promise<void> | void;
 }) {
   const [title, setTitle] = useState(task.title);
   const [category, setCategory] = useState<Category>(task.category ?? "Build");
@@ -17,6 +18,17 @@ export function TaskEditModal({ task, builds, sources, onSave, onDelete, onClose
   const [repo, setRepo] = useState(task.repo);
   const [branch, setBranch] = useState(task.branch);
   const [confirming, setConfirming] = useState(false);
+  const [addingBuild, setAddingBuild] = useState(false);
+  const [newBuildName, setNewBuildName] = useState("");
+
+  async function addBuild() {
+    const n = newBuildName.trim();
+    if (!n) return;
+    await onAddBuild?.(n);
+    setBuild(n);
+    setAddingBuild(false);
+    setNewBuildName("");
+  }
 
   function save() {
     const t = title.trim();
@@ -45,7 +57,16 @@ export function TaskEditModal({ task, builds, sources, onSave, onDelete, onClose
           ))}
         </div>
         {category === "Build" && (<><div style={label}>Build</div>
-          <select aria-label="Build" value={build} onChange={(e) => setBuild(e.target.value)} style={field}>{builds.map((b) => <option key={b} value={b}>{b}</option>)}</select></>)}
+          <select aria-label="Build" value={build} onChange={(e) => setBuild(e.target.value)} style={field}>{builds.map((b) => <option key={b} value={b}>{b}</option>)}</select>
+          {onAddBuild && (addingBuild ? (
+            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              <input autoFocus value={newBuildName} onChange={(e) => setNewBuildName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addBuild(); }} placeholder="New build name" aria-label="New build name"
+                style={{ ...field, flex: 1 }} />
+              <button onClick={addBuild} aria-label="Add build" style={{ background: tokens.accent, color: tokens.onAccent, border: "none", borderRadius: 6, padding: "7px 14px", fontSize: 13, cursor: "pointer" }}>Add</button>
+            </div>
+          ) : (
+            <button onClick={() => setAddingBuild(true)} style={{ background: "transparent", color: tokens.accent, border: "none", padding: 0, marginTop: 8, fontSize: 12, cursor: "pointer" }}>+ New build</button>
+          ))}</>)}
         {category !== "Learn" && (<><div style={label}>Status</div>
           <select aria-label="Status" value={column ?? ""} onChange={(e) => setColumn(e.target.value as ColumnId)} style={field}>{COLUMNS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select></>)}
         <div style={label}>Source</div>

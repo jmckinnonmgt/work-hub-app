@@ -23,6 +23,21 @@ describe("TaskEditModal", () => {
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: "Learn", column: null }));
   });
 
+  it("adds a new build via the inline affordance and selects it", () => {
+    const onSave = vi.fn();
+    const onAddBuild = vi.fn();
+    render(<TaskEditModal task={task} builds={["Alpha", "Beta"]} sources={["Self"]} onSave={onSave} onDelete={vi.fn()} onClose={() => {}} onAddBuild={onAddBuild} />);
+    fireEvent.click(screen.getByRole("button", { name: /\+ new build/i }));
+    fireEvent.change(screen.getByLabelText(/new build name/i), { target: { value: "Gamma" } });
+    fireEvent.click(screen.getByRole("button", { name: /^add build$/i }));
+    expect(onAddBuild).toHaveBeenCalledWith("Gamma");
+  });
+
+  it("omits the add-build affordance when no onAddBuild handler is given", () => {
+    render(<TaskEditModal task={task} builds={["Alpha"]} sources={["Self"]} onSave={vi.fn()} onDelete={vi.fn()} onClose={() => {}} />);
+    expect(screen.queryByRole("button", { name: /\+ new build/i })).toBeNull();
+  });
+
   it("deletes the task after a two-step confirm", () => {
     const onSave = vi.fn();
     const onDelete = vi.fn();
