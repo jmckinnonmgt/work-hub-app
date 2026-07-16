@@ -16,7 +16,7 @@ export function loadBoard(): Promise<ProjectData> {
 export function moveCard(meta: FieldMeta, itemId: string, column: ColumnId): Promise<void> {
   return moveTask(requireToken(), meta, itemId, column);
 }
-export function addCard(meta: FieldMeta, t: NewTask): Promise<string> {
+export function addCard(meta: FieldMeta, t: NewTask): Promise<{ itemId: string; issueNumber: number }> {
   return createTask(requireToken(), meta, t);
 }
 export function editCard(meta: FieldMeta, t: EditedTask): Promise<void> {

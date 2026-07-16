@@ -16,7 +16,7 @@ export function statusNameForColumn(id: ColumnId): string {
   return hit.statusName;
 }
 
-interface RawOption { id: string; name: string; }
+interface RawOption { id: string; name: string; color?: string; description?: string; }
 interface RawField {
   __typename: string; id: string; name: string; options?: RawOption[];
 }
@@ -37,7 +37,7 @@ export interface RawProject {
 function selectMeta(fields: RawField[], name: string): SingleSelectMeta {
   const f = fields.find((x) => x.name === name && x.options);
   if (!f) throw new Error(`Missing single-select field: ${name}`);
-  return { id: f.id, name: f.name, options: (f.options ?? []).map((o) => ({ id: o.id, name: o.name })) };
+  return { id: f.id, name: f.name, options: (f.options ?? []).map((o) => ({ id: o.id, name: o.name, color: o.color, description: o.description })) };
 }
 function textFieldId(fields: RawField[], name: string): string {
   const f = fields.find((x) => x.name === name);

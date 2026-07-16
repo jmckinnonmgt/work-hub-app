@@ -26,7 +26,7 @@ export interface Task {
 export interface SingleSelectMeta {
   id: string;
   name: string;
-  options: { id: string; name: string }[];
+  options: { id: string; name: string; color?: string; description?: string }[];
 }
 export interface FieldMeta {
   projectId: string;

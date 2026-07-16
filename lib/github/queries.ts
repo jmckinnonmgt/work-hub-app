@@ -7,7 +7,7 @@ export const PROJECT_QUERY = /* GraphQL */ `
           nodes {
             __typename
             ... on ProjectV2FieldCommon { id name }
-            ... on ProjectV2SingleSelectField { id name options { id name } }
+            ... on ProjectV2SingleSelectField { id name options { id name color description } }
           }
         }
         items(first: 100, after: $cursor) {

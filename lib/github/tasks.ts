@@ -47,10 +47,11 @@ export async function moveTask(token: string, meta: FieldMeta, itemId: string, c
   });
 }
 
-export async function createTask(token: string, meta: FieldMeta, t: import("@/lib/types").NewTask): Promise<string> {
+export async function createTask(token: string, meta: FieldMeta, t: import("@/lib/types").NewTask): Promise<{ itemId: string; issueNumber: number }> {
   const rest = _rest(token);
   const issue = await rest.rest.issues.create({ owner: OWNER, repo: REPO, title: t.title });
   const contentId = issue.data.node_id;
+  const issueNumber = issue.data.number;
   const added = await _gql<{ addProjectV2ItemById: { item: { id: string } } }>(
     token, ADD_ITEM_MUTATION, { project: meta.projectId, content: contentId },
   );
@@ -71,12 +72,16 @@ export async function createTask(token: string, meta: FieldMeta, t: import("@/li
       project: meta.projectId, item: itemId, field: field.id, option: opt.id,
     });
   }
-  return itemId;
+  return { itemId, issueNumber };
 }
 
 export async function updateTask(token: string, meta: FieldMeta, t: import("@/lib/types").EditedTask): Promise<void> {
-  const rest = _rest(token);
-  await rest.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: t.issueNumber, title: t.title });
+  // Guard against issue_number 0/undefined (e.g. a just-created task whose real
+  // number hasn't propagated into local state yet) — PATCH /issues/0 would 404.
+  if (t.issueNumber) {
+    const rest = _rest(token);
+    await rest.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: t.issueNumber, title: t.title });
+  }
 
   const setSel = async (field: FieldMeta["category"], name: string) => {
     const o = field.options.find((x) => x.name === name);
@@ -96,20 +101,17 @@ export async function updateTask(token: string, meta: FieldMeta, t: import("@/li
 
 export async function addBuildOption(token: string, newName: string): Promise<string[]> {
   const name = newName.trim();
-  const { meta, tasks } = await listTasks(token);
+  const { meta } = await listTasks(token);
   const names = meta.build.options.map((o) => o.name);
   if (!name || names.includes(name)) return names;
-  const options = [...names, name].map((n) => ({ name: n, color: "GRAY", description: "" }));
+  // updateProjectV2Field replaces the whole option set. Send every existing option
+  // back WITH its id (and color/description) so GitHub keeps it — and every card's
+  // build assignment — untouched, then append the new option with no id.
+  const options = [
+    ...meta.build.options.map((o) => ({ id: o.id, name: o.name, color: o.color ?? "GRAY", description: o.description ?? "" })),
+    { name, color: "GRAY", description: "" },
+  ];
   await _gql(token, UPDATE_BUILD_OPTIONS_MUTATION, { field: meta.build.id, options });
-  // The option swap clears item values for the Build field; reread new ids and re-apply.
-  const { meta: meta2 } = await listTasks(token);
-  const idByName: Record<string, string> = {};
-  for (const o of meta2.build.options) idByName[o.name] = o.id;
-  for (const t of tasks) {
-    if (t.build && idByName[t.build]) {
-      await _gql(token, UPDATE_FIELD_MUTATION, { project: meta.projectId, item: t.itemId, field: meta.build.id, option: idByName[t.build] });
-    }
-  }
   return [...names, name];
 }
 

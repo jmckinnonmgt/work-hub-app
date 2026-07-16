@@ -53,8 +53,8 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
     setTasks((ts) => [...ts, temp]);
     if (demo) return;
     try {
-      const realId = await addCard(meta, opts);
-      setTasks((ts) => ts.map((t) => (t.itemId === tempId ? { ...t, itemId: realId } : t)));
+      const { itemId, issueNumber } = await addCard(meta, opts);
+      setTasks((ts) => ts.map((t) => (t.itemId === tempId ? { ...t, itemId, issueNumber } : t)));
     } catch {
       setTasks(prev);
     }
@@ -109,7 +109,7 @@ export function AppClient({ initial, demo = false }: { initial: ProjectData; dem
         )}
       </div>
       {adding && <AddTaskModal builds={builds} onAdd={onAdd} onClose={() => setAdding(false)} onAddBuild={onAddBuild} />}
-      {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onDelete={onDelete} onClose={() => setEditing(null)} />}
+      {editing && <TaskEditModal task={editing} builds={builds} sources={meta.source.options.map((o) => o.name)} onSave={onSave} onDelete={onDelete} onClose={() => setEditing(null)} onAddBuild={onAddBuild} />}
     </div>
   );
 }

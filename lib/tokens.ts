@@ -14,7 +14,7 @@ export const tokens = {
 
 export const COLUMNS: ColumnDef[] = [
   { id: "next", label: "Next", statusName: "Next" },
-  { id: "inprogress", label: "In progress", statusName: "In progress" },
   { id: "blocked", label: "Blocked", statusName: "Blocked" },
+  { id: "inprogress", label: "In progress", statusName: "In progress" },
   { id: "done", label: "Done", statusName: "Done" },
 ];
