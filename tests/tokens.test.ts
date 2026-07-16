@@ -9,10 +9,10 @@ describe("tokens", () => {
   });
   it("defines the four columns in order", () => {
     expect(COLUMNS.map((c) => c.id)).toEqual([
-      "next", "inprogress", "blocked", "done",
+      "next", "blocked", "inprogress", "done",
     ]);
     expect(COLUMNS.map((c) => c.label)).toEqual([
-      "Next", "In progress", "Blocked", "Done",
+      "Next", "Blocked", "In progress", "Done",
     ]);
   });
 });
