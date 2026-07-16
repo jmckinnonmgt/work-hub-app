@@ -27,12 +27,12 @@ describe("createTask", () => {
     const gql = vi.fn()
       .mockResolvedValueOnce({ addProjectV2ItemById: { item: { id: "NEW" } } })
       .mockResolvedValue({});
-    const issuesCreate = vi.fn().mockResolvedValue({ data: { node_id: "NODE" } });
+    const issuesCreate = vi.fn().mockResolvedValue({ data: { node_id: "NODE", number: 42 } });
     const rest = () => ({ rest: { issues: { create: issuesCreate } } }) as any;
     __setTransportsForTest({ gql, rest });
     const { meta } = mapProject(raw as any);
-    const id = await createTask("tok", meta, { title: "New thing", category: "Build", build: "General", column: "next" });
-    expect(id).toBe("NEW");
+    const result = await createTask("tok", meta, { title: "New thing", category: "Build", build: "General", column: "next" });
+    expect(result).toEqual({ itemId: "NEW", issueNumber: 42 });
     expect(issuesCreate).toHaveBeenCalledWith(expect.objectContaining({ title: "New thing" }));
     // 1 add + category + source + build + status = 5 gql calls
     expect(gql).toHaveBeenCalledTimes(5);
@@ -55,6 +55,19 @@ describe("updateTask", () => {
     const clearedFields = clearCalls.map(([, , vars]) => vars.field);
     expect(clearedFields).toContain(meta.build.id);
     expect(clearedFields).toContain(meta.status.id);
+  });
+
+  it("skips the REST issue update when issueNumber is 0 (would 404 on /issues/0)", async () => {
+    const gql = vi.fn().mockResolvedValue({});
+    const issuesUpdate = vi.fn().mockResolvedValue({});
+    const rest = () => ({ rest: { issues: { update: issuesUpdate } } }) as any;
+    __setTransportsForTest({ gql, rest });
+    const { meta } = mapProject(raw as any);
+    await updateTask("tok", meta, {
+      itemId: "I_1", issueNumber: 0, title: "Just created",
+      category: "Learn", build: "", source: "Self", column: null, repo: "", branch: "",
+    });
+    expect(issuesUpdate).not.toHaveBeenCalled();
   });
 });
 
@@ -85,18 +98,14 @@ describe("addBuildOption", () => {
     };
   }
 
-  it("reads current build values, updates options, then re-applies item build values", async () => {
-    const beforeProject = rawProject([{ id: "b1", name: "Atlas" }, { id: "b2", name: "Morpheus" }], "Atlas");
-    const afterProject = rawProject([{ id: "b1n", name: "Atlas" }, { id: "b2n", name: "Morpheus" }, { id: "b3n", name: "Zephyr" }], "Atlas");
+  it("preserves existing options by id and appends the new one without re-applying", async () => {
+    const project = rawProject([{ id: "b1", name: "Atlas" }, { id: "b2", name: "Morpheus" }], "Atlas");
     let projectCallCount = 0;
     const gql = vi.fn().mockImplementation((_token: string, query: string) => {
       if (query === PROJECT_QUERY) {
         projectCallCount += 1;
-        const raw = projectCallCount === 1 ? beforeProject : afterProject;
-        return Promise.resolve({ user: { projectV2: raw } });
+        return Promise.resolve({ user: { projectV2: project } });
       }
-      if (query.includes("singleSelectOptions")) return Promise.resolve({});
-      if (query.includes("updateProjectV2ItemFieldValue")) return Promise.resolve({});
       return Promise.resolve({});
     });
     __setTransportsForTest({ gql });
@@ -104,17 +113,21 @@ describe("addBuildOption", () => {
     const result = await addBuildOption("tok", "Zephyr");
 
     expect(result).toEqual(["Atlas", "Morpheus", "Zephyr"]);
+    // The board is read exactly once — no post-update re-read / re-apply pass.
+    expect(projectCallCount).toBe(1);
 
     const optionsCall = gql.mock.calls.find(([, query]) => query.includes("singleSelectOptions"));
     expect(optionsCall).toBeTruthy();
-    const optionNames = (optionsCall![2] as any).options.map((o: any) => o.name);
-    expect(optionNames).toEqual(["Atlas", "Morpheus", "Zephyr"]);
+    const opts = (optionsCall![2] as any).options;
+    expect(opts.map((o: any) => o.name)).toEqual(["Atlas", "Morpheus", "Zephyr"]);
+    // Existing options are sent back with their ids; the new one carries none.
+    expect(opts[0].id).toBe("b1");
+    expect(opts[1].id).toBe("b2");
+    expect(opts[2].id).toBeUndefined();
 
-    const reapplyCall = gql.mock.calls.find(
-      ([, query, vars]) => query.includes("updateProjectV2ItemFieldValue") && (vars as any).item === "I_1",
-    );
-    expect(reapplyCall).toBeTruthy();
-    expect((reapplyCall![2] as any).option).toBe("b1n");
+    // No item-level Build re-assignment happens anymore.
+    const reapplyCall = gql.mock.calls.find(([, query]) => query.includes("updateProjectV2ItemFieldValue"));
+    expect(reapplyCall).toBeUndefined();
   });
 });
 

@@ -43,7 +43,7 @@ beforeEach(() => {
   moveCard.mockReset();
   addCard.mockReset();
   deleteCard.mockReset();
-  addCard.mockResolvedValue("REAL_ID");
+  addCard.mockResolvedValue({ itemId: "REAL_ID", issueNumber: 7 });
   deleteCard.mockResolvedValue(undefined);
   behaviour = null;
 });
@@ -74,7 +74,7 @@ describe("AppClient optimistic move", () => {
     expect(screen.queryByTestId("dropzone-next")).toBeNull();
   });
   it("adds a task via the modal and makes it draggable with the real id", async () => {
-    addCard.mockResolvedValue("REAL_ID");
+    addCard.mockResolvedValue({ itemId: "REAL_ID", issueNumber: 7 });
     render(<AppClient initial={initial} />);
     fireEvent.click(screen.getByRole("button", { name: /add task/i }));
     fireEvent.change(screen.getByLabelText(/task title/i), { target: { value: "New thing" } });
@@ -83,7 +83,7 @@ describe("AppClient optimistic move", () => {
     await waitFor(() => expect(screen.getByText("New thing")).toBeInTheDocument());
   });
   it("makes a newly added task draggable with its real id", async () => {
-    addCard.mockResolvedValue("REAL_ID");
+    addCard.mockResolvedValue({ itemId: "REAL_ID", issueNumber: 7 });
     render(<AppClient initial={initial} />);
     fireEvent.click(screen.getByRole("button", { name: /add task/i }));
     fireEvent.change(screen.getByLabelText(/task title/i), { target: { value: "Fresh task" } });
